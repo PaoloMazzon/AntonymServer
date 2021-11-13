@@ -15,3 +15,6 @@ void nymSFree(void *ptr);
 
 /// \brief Logs a message to the debug console and to a file
 void nymSLog(NymSLogLevel level, const char *fmt, ...);
+
+/// \brief Same as above but does not log to a file
+void nymSPrint(const char *fmt, ...);

@@ -73,3 +73,21 @@ void nymSLog(NymSLogLevel level, const char *fmt, ...) {
 	if (level == NYMS_LOG_LEVEL_CRITICAL)
 		abort();
 }
+
+void nymSPrint(const char *fmt, ...) {
+	va_list list;
+
+	// Wait till the function is available
+	while (gLogInUse) {
+		volatile int i = 0;
+	}
+	gLogInUse = 1;
+
+	// To stdout
+	va_start(list, fmt);
+	vprintf(fmt, list);
+	fflush(stdout);
+	va_end(list);
+
+	gLogInUse = 0;
+}

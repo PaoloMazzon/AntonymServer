@@ -1,6 +1,6 @@
 /// \file Server.c
 /// \author Paolo Mazzon
-#include <stdbool.h>
+#include <stdio.h>
 #include "NymS/Server.h"
 #include "NymS/Util.h"
 
@@ -9,16 +9,36 @@ void nymSStart() {
 	NymSServer server = nymSCalloc(sizeof(struct NymSServer));
 
 	// Start the server thread
-	server->status = NYMS_THREAD_STATUS_OK;
+	server->Shared.status = NYMS_THREAD_STATUS_OK;
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	int status = pthread_create(&server->serverThread, &attr, nymSServer, server);
+	int status = pthread_create(&server->Local.serverThread, &attr, nymSServer, server);
+
+	// Wait till the server thread has started to begin the repl
+	while (!server->Shared.serverRunning) {
+		volatile int yup = 0;
+	}
 
 	// Wait till we get the exit status to quit
-	bool quit = false;
-	while (!quit) {
-		quit = server->status == NYMS_THREAD_STATUS_QUIT;
+	while (server->Shared.status != NYMS_THREAD_STATUS_QUIT) {
+		// Get line
+		char input[1024];
+		fflush(stdin);
+		nymSPrint("Server> ");
+		scanf("%1023[^\n]", input);
+
+		// Process line
+		if (strcmp(input, "quit") == 0) {
+			server->Shared.status = NYMS_THREAD_STATUS_QUIT;
+		} else {
+			nymSPrint("Unrecognized command \"%s\"\n", input);
+		}
+	}
+
+	// Wait till the server thread has stopped to free the memory
+	while (server->Shared.serverRunning) {
+		volatile int yup = 0;
 	}
 
 	nymSFree(server);
