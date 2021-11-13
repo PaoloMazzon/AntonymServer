@@ -1,0 +1,7 @@
+.dll
+.exe
+.log
+cmake-build-debug/
+.idea/
+venv/
+.zip
