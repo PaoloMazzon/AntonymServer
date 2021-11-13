@@ -13,8 +13,7 @@ void nymSStart() {
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	int status = pthread_create(&server->Local.serverThread, &attr, nymSServer, server);
-	if (status != 0)
+	if (pthread_create(&server->Local.serverThread, &attr, nymSServer, server) != 0)
 		nymSLog(NYMS_LOG_LEVEL_CRITICAL, "Failed to create server thread.");
 
 	// Wait till the server thread has started to begin the repl
