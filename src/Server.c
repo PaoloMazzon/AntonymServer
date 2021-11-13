@@ -4,13 +4,6 @@
 #include "NymS/Server.h"
 #include "NymS/Util.h"
 
-// For starting the server thread
-void *nymSServer(void *data) {
-	NymSServer server = data;
-	server->status = NYMS_THREAD_STATUS_QUIT;
-	return NULL;
-}
-
 void nymSStart() {
 	nymSLog(NYMS_LOG_LEVEL_MESSAGE, "Starting server...");
 	NymSServer server = nymSCalloc(sizeof(struct NymSServer));

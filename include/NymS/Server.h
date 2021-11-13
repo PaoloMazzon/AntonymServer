@@ -12,3 +12,6 @@ struct NymSServer {
 
 /// \brief Stars the server
 void nymSStart();
+
+/// \brief The actual server
+void *nymSServer(void *data);

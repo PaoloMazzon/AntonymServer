@@ -6,6 +6,9 @@
 #include "NymS/Util.h"
 #include "NymS/Constants.h"
 
+// For making log thread safe
+_Atomic int gLogInUse = 0;
+
 void *nymSMalloc(uint32_t size) {
 	void *out = malloc(size);
 	if (out == NULL)
@@ -26,6 +29,12 @@ void nymSFree(void *ptr) {
 
 void nymSLog(NymSLogLevel level, const char *fmt, ...) {
 	va_list list;
+
+	// Wait till the function is available
+	while (gLogInUse) {
+		volatile int i = 0;
+	}
+	gLogInUse = 1;
 
 	// To stdout
 	va_start(list, fmt);
@@ -57,6 +66,8 @@ void nymSLog(NymSLogLevel level, const char *fmt, ...) {
 	fprintf(file, "\n");
 	fclose(file);
 	va_end(list);
+
+	gLogInUse = 0;
 
 	// Abort if critical error
 	if (level == NYMS_LOG_LEVEL_CRITICAL)
