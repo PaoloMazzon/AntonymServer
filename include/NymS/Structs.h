@@ -5,7 +5,10 @@
 #include <stdint.h>
 
 /*********************** Forward Declare Structs ***********************/
+
 typedef struct NymSServer *NymSServer;
+typedef struct NymSPacketClient NymSPacketClient;
+typedef struct NymSPacketServer NymSPacketServer;
 
 /*********************** Enums ***********************/
 
