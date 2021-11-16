@@ -6,6 +6,13 @@
 #include "NymS/Util.h"
 #include "NymS/Constants.h"
 #include "NymS/Game.h"
+#include "Nym/Packet.h"
+
+void nymSServerHandlePacket(NymSServer server, NymPacketClientMaster *packet) {
+	if (packet->type == NYM_PACKET_TYPE_CLIENT_MESSAGE) {
+		nymSPrint("Chat: %s", packet->message.message);
+	}
+}
 
 void nymSServerHandleEvents(NymSServer server) {
 	ENetEvent event;
@@ -21,13 +28,15 @@ void nymSServerHandleEvents(NymSServer server) {
 				event.peer -> data = "Client information";
 				break;
 			case ENET_EVENT_TYPE_RECEIVE:
-				nymSLog(NYMS_LOG_LEVEL_MESSAGE, "A packet of length %u containing %s was received from %s on channel %u.\n",
-						event.packet -> dataLength,
-						event.packet -> data,
-						event.peer -> data,
-						event.channelID);
-				/* Clean up the packet now that we're done using it. */
-				enet_packet_destroy (event.packet);
+				;NymPacketClientMaster packet;
+				if (sizeof(struct NymPacketClientMaster) - NYM_PACKET_HEADER_OFFSET < event.packet->dataLength) {
+					nymSLog(NYMS_LOG_LEVEL_WARNING, "Bad packet of size %i received.", event.packet->dataLength);
+				} else {
+					memcpy((void*)&packet + NYM_PACKET_HEADER_OFFSET, event.packet->data, event.packet->dataLength);
+					packet.type = packet.message.type;
+					nymSServerHandlePacket(server, &packet);
+				}
+				enet_packet_destroy(event.packet);
 
 				break;
 
