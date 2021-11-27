@@ -18,3 +18,8 @@ void nymSLog(NymSLogLevel level, const char *fmt, ...);
 
 /// \brief Same as above but does not log to a file
 void nymSPrint(const char *fmt, ...);
+
+/// \brief Makes sure a string is safe by putting a \0 at the end of a string
+/// \param string String to sanitize
+/// \param size Max size in bytes the string is supposed to be
+void nymSSanitizeString(char *string, int size);

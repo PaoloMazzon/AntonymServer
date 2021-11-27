@@ -91,3 +91,7 @@ void nymSPrint(const char *fmt, ...) {
 
 	gLogInUse = 0;
 }
+
+void nymSSanitizeString(char *string, int size) {
+	string[size - 1] = 0;
+}

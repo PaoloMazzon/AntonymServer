@@ -9,6 +9,7 @@
 typedef struct NymSServer *NymSServer;
 typedef struct NymSPacketClient NymSPacketClient;
 typedef struct NymSPacketServer NymSPacketServer;
+typedef struct NymSClient *NymSClient;
 
 /*********************** Enums ***********************/
 

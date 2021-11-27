@@ -8,6 +8,12 @@ void nymSStart() {
 	nymSLog(NYMS_LOG_LEVEL_MESSAGE, "Starting server...");
 	NymSServer server = nymSCalloc(sizeof(struct NymSServer));
 
+	// Create the client mutex
+	pthread_mutexattr_t mut;
+	pthread_mutexattr_init(&mut);
+	pthread_mutexattr_setprotocol(&mut, PTHREAD_MUTEX_DEFAULT);
+	pthread_mutex_init(&server->Shared.clientMutex, &mut);
+
 	// Start the server thread
 	server->Shared.status = NYMS_THREAD_STATUS_OK;
 	pthread_attr_t attr;
