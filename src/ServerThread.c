@@ -62,6 +62,8 @@ void nymSServerHandleEvents(NymSServer server) {
 				NymPacketServerInitial initial = {NYM_PACKET_TYPE_SERVER_INITIAL, client->id};
 				nymSServerSendPacket(server, &initial, sizeof(struct NymPacketServerInitial), true, event.peer);
 
+				// TODO: Send packet about new connection
+
 				nymSClientUnlock(server);
 				break;
 			case ENET_EVENT_TYPE_RECEIVE:;
@@ -91,6 +93,8 @@ void nymSServerHandleEvents(NymSServer server) {
 				strncpy(message.message, chat, NYM_MAX_CHAT_CHARACTERS);
 				message.len = strlen(message.message);
 				nymSServerBroadcast(server, &message, sizeof(struct NymPacketServerMessage), true);
+
+				// TODO: Send connection packet about disconnection
 
 				// Delete the client
 				nymSClientUnlock(server);
