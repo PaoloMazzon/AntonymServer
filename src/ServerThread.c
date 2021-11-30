@@ -46,6 +46,39 @@ void nymSServerHandlePacket(NymSServer server, NymPacketClientMaster *packet, EN
 	}
 }
 
+void nymSServerHandleConnection(NymSServer server, ENetPeer *peer) {
+	NymSClient client = nymSClientCreateLocked(server, peer);
+	nymSLog(NYMS_LOG_LEVEL_MESSAGE, "A new client [%i] connected from %s\n", client->id, client->hostname);
+
+	// Send the client its id
+	NymPacketServerInitial initial = {NYM_PACKET_TYPE_SERVER_INITIAL, client->id};
+	nymSServerSendPacket(server, &initial, sizeof(struct NymPacketServerInitial), true, peer);
+
+	// TODO: Send packet about new connection
+
+	nymSClientUnlock(server);
+}
+
+void nymSServerHandleDisconnect(NymSServer server, ENetPeer *peer, bool timeout) {
+	// Show that the client dc'd in the console
+	NymSClient client = nymSClientLock(server, peer);
+	nymSLog(NYMS_LOG_LEVEL_MESSAGE, "%s [%i] disconnected.\n", client->hostname, client->id);
+
+	// Send a message in chat about it
+	char chat[1024];
+	snprintf(chat, 1024, "%s disconnected.", client->playerName);
+	NymPacketServerMessage message = {NYM_PACKET_TYPE_SERVER_MESSAGE};
+	strncpy(message.message, chat, NYM_MAX_CHAT_CHARACTERS);
+	message.len = strlen(message.message);
+	nymSServerBroadcast(server, &message, sizeof(struct NymPacketServerMessage), true);
+
+	// TODO: Send connection packet about disconnection
+
+	// Delete the client
+	nymSClientUnlock(server);
+	nymSClientDestroy(server, peer);
+}
+
 void nymSServerHandleEvents(NymSServer server) {
 	ENetEvent event;
 	while (enet_host_service(server->Server.host, &event, 0) > 0)
@@ -55,16 +88,7 @@ void nymSServerHandleEvents(NymSServer server) {
 			case ENET_EVENT_TYPE_CONNECT:
 				// Print new client information
 				event.peer->data = "Client information";
-				NymSClient client = nymSClientCreateLocked(server, event.peer);
-				nymSLog(NYMS_LOG_LEVEL_MESSAGE, "A new client [%i] connected from %s\n", client->id, client->hostname);
-
-				// Send the client its id
-				NymPacketServerInitial initial = {NYM_PACKET_TYPE_SERVER_INITIAL, client->id};
-				nymSServerSendPacket(server, &initial, sizeof(struct NymPacketServerInitial), true, event.peer);
-
-				// TODO: Send packet about new connection
-
-				nymSClientUnlock(server);
+				nymSServerHandleConnection(server, event.peer);
 				break;
 			case ENET_EVENT_TYPE_RECEIVE:;
 				// Get the packet and pass it off to the packet handling function
@@ -81,24 +105,9 @@ void nymSServerHandleEvents(NymSServer server) {
 				break;
 
 			case ENET_EVENT_TYPE_DISCONNECT:
-			case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:;
-				// Show that the client dc'd in the console
-				NymSClient client2 = nymSClientLock(server, event.peer);
-				nymSLog(NYMS_LOG_LEVEL_MESSAGE, "%s [%i] disconnected.\n", client2->hostname, client2->id);
-
-				// Send a message in chat about it
-				char chat[1024];
-				snprintf(chat, 1024, "%s disconnected.", client->playerName);
-				NymPacketServerMessage message = {NYM_PACKET_TYPE_SERVER_MESSAGE};
-				strncpy(message.message, chat, NYM_MAX_CHAT_CHARACTERS);
-				message.len = strlen(message.message);
-				nymSServerBroadcast(server, &message, sizeof(struct NymPacketServerMessage), true);
-
-				// TODO: Send connection packet about disconnection
-
-				// Delete the client
-				nymSClientUnlock(server);
-				nymSClientDestroy(server, event.peer);
+				nymSServerHandleDisconnect(server, event.peer, false);
+			case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
+				nymSServerHandleDisconnect(server, event.peer, true);
 
 				/* Reset the peer's client information. */
 				event.peer -> data = NULL;

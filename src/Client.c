@@ -5,7 +5,7 @@
 #include "NymS/Util.h"
 
 NymSClient nymSClientCreateLocked(NymSServer server, ENetPeer *peer) {
-	int spot;
+	int spot = -1;
 	pthread_mutex_lock(&server->Shared.clientMutex);
 	for (int i = 0; i < NYMS_MAX_CLIENTS && spot == -1; i++)
 		if (server->Shared.clients[i] == NULL)
