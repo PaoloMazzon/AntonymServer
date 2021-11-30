@@ -32,8 +32,8 @@ NymSDispatcher nymSDispatcherCreate();
 /// \brief Destroys a dispatcher
 void nymSDispatcherDestroy(NymSDispatcher dispatcher);
 
-/// \brief Queues a command (don't free the command)
+/// \brief Queues a command (don't free the command) (thread-safe)
 void nymSDispatcherQueue(NymSDispatcher dispatcher, NymSCommand command);
 
-/// \brief Gets the first command from the queue (you must free the command yourself)
+/// \brief Gets the first command from the queue (you must free the command yourself) (thread-safe)
 NymSCommand nymSDispatcherGet(NymSDispatcher dispatcher);

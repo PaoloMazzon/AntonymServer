@@ -3,10 +3,12 @@
 #include "NymS/REPL.h"
 #include "NymS/Server.h"
 #include "NymS/Util.h"
+#include "NymS/Command.h"
 
 void nymSStart() {
 	nymSLog(NYMS_LOG_LEVEL_MESSAGE, "Starting server...");
 	NymSServer server = nymSCalloc(sizeof(struct NymSServer));
+	server->Shared.dispatcher = nymSDispatcherCreate();
 
 	// Create the client mutex
 	pthread_mutexattr_t mut;
@@ -37,6 +39,7 @@ void nymSStart() {
 		volatile int yup = 0;
 	}
 
+	nymSDispatcherDestroy(server->Shared.dispatcher);
 	nymSFree(server);
 	nymSLog(NYMS_LOG_LEVEL_MESSAGE, "Quitting server...");
 }

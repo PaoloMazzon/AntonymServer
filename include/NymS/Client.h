@@ -22,7 +22,7 @@ void nymSClientCreate(NymSServer server, ENetPeer *peer);
 NymSClient nymSClientCreateLocked(NymSServer server, ENetPeer *peer);
 
 /// \brief Gets the whole list of clients (locks, call nymSClientUnlock after)
-NymSClient *nymSClientGetList(NymSServer server);
+NymSClient *nymSClientGetList(NymSServer server, int *size);
 
 /// \brief Gets a client given a peer and locks the clients (call `nymSClientUnlock` when you're done) (returns NULL if client doesn't exist)
 NymSClient nymSClientLock(NymSServer server, ENetPeer *peer);

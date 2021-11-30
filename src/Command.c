@@ -21,7 +21,7 @@ NymSDispatcher nymSDispatcherCreate() {
 	pthread_mutexattr_init(&mut);
 	pthread_mutexattr_setprotocol(&mut, PTHREAD_MUTEX_DEFAULT);
 	pthread_mutex_init(&dispatcher->commandLock, &mut);
-	return NULL;
+	return dispatcher;
 }
 
 void nymSDispatcherDestroy(NymSDispatcher dispatcher) {
@@ -35,7 +35,7 @@ void nymSDispatcherDestroy(NymSDispatcher dispatcher) {
 void nymSDispatcherQueue(NymSDispatcher dispatcher, NymSCommand command) {
 	pthread_mutex_lock(&dispatcher->commandLock);
 	// Make list bigger if not enough elements available
-	if (dispatcher->commandCount < dispatcher->commandListSize) {
+	if (dispatcher->commandCount >= dispatcher->commandListSize) {
 		dispatcher->commands = nymSRealloc(dispatcher->commands, (dispatcher->commandListSize + NYMS_LIST_EXTENSION) * sizeof(NymSCommand));
 		dispatcher->commandListSize += NYMS_LIST_EXTENSION;
 	}

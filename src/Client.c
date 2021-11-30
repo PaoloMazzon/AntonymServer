@@ -36,8 +36,9 @@ NymSClient nymSClientLock(NymSServer server, ENetPeer *peer) {
 	return NULL;
 }
 
-NymSClient *nymSClientGetList(NymSServer server) {
+NymSClient *nymSClientGetList(NymSServer server, int *size) {
 	pthread_mutex_lock(&server->Shared.clientMutex);
+	*size = NYMS_MAX_CLIENTS;
 	return server->Shared.clients;
 }
 
