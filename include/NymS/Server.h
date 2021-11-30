@@ -15,6 +15,7 @@ struct NymSServer {
 		_Atomic bool serverRunning;           ///< Tells the main thread if the server thread is active or not
 		NymSClient clients[NYMS_MAX_CLIENTS]; ///< List of all connected clients
 		pthread_mutex_t clientMutex;          ///< Mutex for accessing the clients list
+		NymSDispatcher dispatcher;            ///< Command dispatcher
 	} Shared;
 
 	///< Data exclusive to the REPL thread

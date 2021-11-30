@@ -17,3 +17,9 @@ extern int NYMS_DEFAULT_PORT;
 
 ///< Max number of characters in a player's name
 #define NYMS_NAME_MAX_CHARACTERS 15
+
+///< Max number of characters a repl command can be
+#define NYMS_MAX_COMMAND_CHARACTERS 100
+
+///< How many elements to add to a list at a time
+extern int NYMS_LIST_EXTENSION;

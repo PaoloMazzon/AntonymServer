@@ -10,6 +10,9 @@ void *nymSMalloc(uint32_t size);
 /// \brief Same as malloc but crashes on failure and zeroes the data (only use nymSFree for this data)
 void *nymSCalloc(uint32_t size);
 
+/// \brief Same as realloc but crashes on failure (only use nymSFree)
+void *nymSRealloc(void *ptr, uint32_t size);
+
 /// \brief Same as free but in the Nym engine (NULL is safe to pass)
 void nymSFree(void *ptr);
 

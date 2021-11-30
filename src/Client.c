@@ -36,6 +36,11 @@ NymSClient nymSClientLock(NymSServer server, ENetPeer *peer) {
 	return NULL;
 }
 
+NymSClient *nymSClientGetList(NymSServer server) {
+	pthread_mutex_lock(&server->Shared.clientMutex);
+	return server->Shared.clients;
+}
+
 void nymSClientUnlock(NymSServer server) {
 	pthread_mutex_unlock(&server->Shared.clientMutex);
 }
