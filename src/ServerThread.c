@@ -38,11 +38,17 @@ void nymSServerHandlePacket(NymSServer server, NymPacketClientMaster *packet, EN
 		message.len = strlen(message.message);
 		nymSServerBroadcast(server, &message, sizeof(struct NymPacketServerMessage), true);
 	} else if (packet->type == NYM_PACKET_TYPE_CLIENT_LOBBY) {
-		// Copy the client's information into their client struct
-		NymSClient client = nymSClientLock(server, peer);
-		nymSSanitizeString(packet->lobby.playerName, NYM_NAME_MAX_CHARACTERS);
-		strncpy(client->playerName, packet->lobby.playerName, NYM_NAME_MAX_CHARACTERS);
-		nymSClientUnlock(server);
+		// If the client's version doesn't match boot em
+		if (packet->lobby.version != NYM_NET_VERSION) {
+			nymSLog(NYMS_LOG_LEVEL_MESSAGE, "Client disconnected due to version mismatch (server is [%i] client was [%i])", NYM_NET_VERSION, packet->lobby.version);
+			enet_peer_disconnect(peer, 0);
+		} else {
+			// Copy the client's information into their client struct
+			NymSClient client = nymSClientLock(server, peer);
+			nymSSanitizeString(packet->lobby.playerName, NYM_NAME_MAX_CHARACTERS);
+			strncpy(client->playerName, packet->lobby.playerName, NYM_NAME_MAX_CHARACTERS);
+			nymSClientUnlock(server);
+		}
 	}
 }
 
@@ -51,10 +57,10 @@ void nymSServerHandleConnection(NymSServer server, ENetPeer *peer) {
 	nymSLog(NYMS_LOG_LEVEL_MESSAGE, "A new client [%i] connected from %s\n", client->id, client->hostname);
 
 	// Send the client its id
-	NymPacketServerInitial initial = {NYM_PACKET_TYPE_SERVER_INITIAL, client->id};
+	NymPacketServerInitial initial = {NYM_PACKET_TYPE_SERVER_INITIAL, client->id, NYM_NET_VERSION, 0, 0};
 	nymSServerSendPacket(server, &initial, sizeof(struct NymPacketServerInitial), true, peer);
 
-	// TODO: Send packet about new connection
+	// TODO: Send packet about new connection to all connected clients
 
 	nymSClientUnlock(server);
 }
@@ -62,21 +68,23 @@ void nymSServerHandleConnection(NymSServer server, ENetPeer *peer) {
 void nymSServerHandleDisconnect(NymSServer server, ENetPeer *peer, bool timeout) {
 	// Show that the client dc'd in the console
 	NymSClient client = nymSClientLock(server, peer);
-	nymSLog(NYMS_LOG_LEVEL_MESSAGE, "%s [%i] disconnected.\n", client->hostname, client->id);
+	if (client != NULL) {
+		nymSLog(NYMS_LOG_LEVEL_MESSAGE, "%s [%i] disconnected.\n", client->hostname, client->id);
 
-	// Send a message in chat about it
-	char chat[1024];
-	snprintf(chat, 1024, "%s disconnected.", client->playerName);
-	NymPacketServerMessage message = {NYM_PACKET_TYPE_SERVER_MESSAGE};
-	strncpy(message.message, chat, NYM_MAX_CHAT_CHARACTERS);
-	message.len = strlen(message.message);
-	nymSServerBroadcast(server, &message, sizeof(struct NymPacketServerMessage), true);
+		// Send a message in chat about it
+		char chat[1024];
+		snprintf(chat, 1024, "%s disconnected.", client->playerName);
+		NymPacketServerMessage message = {NYM_PACKET_TYPE_SERVER_MESSAGE};
+		strncpy(message.message, chat, NYM_MAX_CHAT_CHARACTERS);
+		message.len = strlen(message.message);
+		nymSServerBroadcast(server, &message, sizeof(struct NymPacketServerMessage), true);
 
-	// TODO: Send connection packet about disconnection
+		// TODO: Send connection packet about disconnection
 
-	// Delete the client
-	nymSClientUnlock(server);
-	nymSClientDestroy(server, peer);
+		// Delete the client
+		nymSClientUnlock(server);
+		nymSClientDestroy(server, peer);
+	}
 }
 
 void nymSServerHandleEvents(NymSServer server) {

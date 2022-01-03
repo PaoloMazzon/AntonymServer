@@ -22,11 +22,11 @@ void nymSGameProcess(NymSServer server) {
 			}
 			nymSClientUnlock(server);
 		} else if (command->type == NYMS_COMMAND_KICK) {
-			nymSPrint("Command not yet implemented.");
+			nymSPrint("Command not yet implemented.\n");
 		} else if (command->type == NYMS_COMMAND_SAY) {
-			nymSPrint("Command not yet implemented.");
+			nymSPrint("Command not yet implemented.\n");
 		} else if (command->type == NYMS_COMMAND_SILENCE) {
-			nymSPrint("Command not yet implemented.");
+			nymSPrint("Command not yet implemented.\n");
 		}
 
 		nymSCommandDestroy(command);

@@ -10,7 +10,6 @@ void nymSREPLProcess(NymSServer server) {
 	char input[1024];
 	char *argument = ""; // Comes from input
 	fflush(stdin);
-	nymSPrint("Server> ");
 	scanf("%1023[^\n]", input);
 
 	// Find a space if it exists
