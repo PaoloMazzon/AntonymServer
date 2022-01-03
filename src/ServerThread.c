@@ -24,19 +24,21 @@ void nymSServerHandlePacket(NymSServer server, NymPacketClientMaster *packet, EN
 	if (packet->type == NYM_PACKET_TYPE_CLIENT_MESSAGE) {
 		// Create a proper chat message
 		NymSClient client = nymSClientLock(server, peer);
-		char chat[1024];
-		nymSSanitizeString(packet->message.message, NYM_MAX_CHAT_CHARACTERS);
-		snprintf(chat, 1024, "%s: %s", client->playerName, packet->message.message);
-		nymSClientUnlock(server);
+		if (!client->silenced) {
+			char chat[1024];
+			nymSSanitizeString(packet->message.message, NYM_MAX_CHAT_CHARACTERS);
+			snprintf(chat, 1024, "%s: %s", client->playerName, packet->message.message);
+			nymSClientUnlock(server);
 
-		// Display it in the console
-		nymSPrint("[Chat] %s\n", chat);
+			// Display it in the console
+			nymSPrint("[Chat] %s\n", chat);
 
-		// Create the packet and send it to everyone
-		NymPacketServerMessage message = {NYM_PACKET_TYPE_SERVER_MESSAGE};
-		strncpy(message.message, chat, NYM_MAX_CHAT_CHARACTERS);
-		message.len = strlen(message.message);
-		nymSServerBroadcast(server, &message, sizeof(struct NymPacketServerMessage), true);
+			// Create the packet and send it to everyone
+			NymPacketServerMessage message = {NYM_PACKET_TYPE_SERVER_MESSAGE};
+			strncpy(message.message, chat, NYM_MAX_CHAT_CHARACTERS);
+			message.len = strlen(message.message);
+			nymSServerBroadcast(server, &message, sizeof(struct NymPacketServerMessage), true);
+		}
 	} else if (packet->type == NYM_PACKET_TYPE_CLIENT_LOBBY) {
 		// If the client's version doesn't match boot em
 		if (packet->lobby.version != NYM_NET_VERSION) {
@@ -59,8 +61,17 @@ void nymSServerHandleConnection(NymSServer server, ENetPeer *peer) {
 	// Send the client its id
 	NymPacketServerInitial initial = {NYM_PACKET_TYPE_SERVER_INITIAL, client->id, NYM_NET_VERSION, 0, 0};
 	nymSServerSendPacket(server, &initial, sizeof(struct NymPacketServerInitial), true, peer);
+	client->peer = peer;
 
-	// TODO: Send packet about new connection to all connected clients
+	// Send packet about new connection to all connected clients
+	NymPacketServerConnection connection = {
+			NYM_PACKET_TYPE_SERVER_CONNECTION,
+			NYM_CONNECT_NEWCONNECTION,
+			client->id,
+			0, // TODO: Give an x and y
+			0
+	};
+	nymSServerBroadcast(server, &connection, sizeof(struct NymPacketServerConnection), true);
 
 	nymSClientUnlock(server);
 }
@@ -79,7 +90,15 @@ void nymSServerHandleDisconnect(NymSServer server, ENetPeer *peer, bool timeout)
 		message.len = strlen(message.message);
 		nymSServerBroadcast(server, &message, sizeof(struct NymPacketServerMessage), true);
 
-		// TODO: Send connection packet about disconnection
+		// Send packet about new connection to all connected clients
+		NymPacketServerConnection connection = {
+				NYM_PACKET_TYPE_SERVER_CONNECTION,
+				timeout ? NYM_CONNECT_DISCONNECTED_TIMEOUT : NYM_CONNECT_DISCONNECTED_NORMAL,
+				client->id,
+				0,
+				0
+		};
+		nymSServerBroadcast(server, &connection, sizeof(struct NymPacketServerConnection), true);
 
 		// Delete the client
 		nymSClientUnlock(server);

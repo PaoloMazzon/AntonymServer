@@ -16,6 +16,7 @@ NymSClient nymSClientCreateLocked(NymSServer server, ENetPeer *peer) {
 		enet_address_get_host_ip_old(&peer->address, server->Shared.clients[spot]->hostname, NYMS_MAX_HOST_CHARACTERS);
 		server->Shared.clients[spot]->address = peer->address;
 		server->Shared.clients[spot]->id = server->Server.idGenerator++;
+		server->Shared.clients[spot]->silenced = false;
 		return server->Shared.clients[spot];
 	} else {
 		nymSLog(NYMS_LOG_LEVEL_ERROR, "Client attempted to connect past max.");

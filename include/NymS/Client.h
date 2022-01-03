@@ -13,6 +13,8 @@ struct NymSClient {
 	NymPlayerID id;                            ///< ID of this client
 	ENetAddress address;                       ///< Address of this client
 	char playerName[NYMS_NAME_MAX_CHARACTERS]; ///< Name of this client
+	ENetPeer *peer;                            ///< Peer of this client
+	bool silenced;                             ///< Whether or not this person may chat
 };
 
 /// \brief Creates a new player and puts it in a free spot in the server

@@ -9,6 +9,7 @@ void nymSStart() {
 	nymSLog(NYMS_LOG_LEVEL_MESSAGE, "Starting server...");
 	NymSServer server = nymSCalloc(sizeof(struct NymSServer));
 	server->Shared.dispatcher = nymSDispatcherCreate();
+	server->Server.idGenerator = 1;
 
 	// Create the client mutex
 	pthread_mutexattr_t mut;
